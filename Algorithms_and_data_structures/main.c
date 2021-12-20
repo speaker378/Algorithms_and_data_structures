@@ -7,13 +7,143 @@
 
 #include <stdio.h>
 #include <math.h>
+typedef enum { false, true } bool;
 
-void menu(void);
-void solution1(void);
-void solution2(void);
-void solution3(void);
-void solution4(void);
-void solution5(void);
+void menu(void) {
+    printf("\n");
+    printf("******************\n");
+    printf("  1 - Задача 1 \n");
+    printf("  2 - Задача 2 \n");
+    printf("  3 - Задача 3 \n");
+    printf("  0 - Выход \n");
+    printf("******************\n");
+}
+
+// 1. Реализовать функцию перевода из десятичной системы в двоичную, используя рекурсию.
+int decToBinInteger(int dec) {
+    if (dec == 0)
+        return 0;
+    else
+        return (dec % 2 + 10 * decToBinInteger(dec / 2));
+}
+
+double decToBinFraction(double dec) {
+    static long count = 1;
+    count *= 10;
+    if (dec < 0.0001) {
+        count = 1;
+        return 0;
+    }
+    else {
+        double d = dec * 2;
+        double i = (int) d;
+        double f = d - i;
+        return (i / count + decToBinFraction(f));
+    }
+}
+
+void solution1(void) {
+    int integer, resultInteger;
+    double num, fraction, resultFraction, result;
+    bool sign;
+    printf("Введите число:");
+    scanf("%lf", &num);
+    
+    sign = (num < 0) ? true : false;
+    num = fabs(num);
+    
+    integer = (int) num;
+    resultInteger = decToBinInteger(num);
+    fraction = num - integer;
+    resultFraction = decToBinFraction(fraction);
+    result = resultInteger + resultFraction;
+    printf("%lf", (sign) ? -result : result);
+}
+
+// 2. Реализовать функцию возведения числа a в степень b:
+//      a. без рекурсии;
+//      b. рекурсивно;
+//      c. *рекурсивно, используя свойство четности степени.
+int power(int x, int n)
+ {
+     int a = 1;
+     while(n) {
+         if(n % 2) {
+             a *= x;
+             n -= 1;
+         }
+         else{
+             x *= x;
+             n /= 2;
+         }
+     }
+     return a;
+ }
+
+int powRecurs(int x, int n) {
+    if (n == 1)
+        return x;
+    else
+        return (x * powRecurs(x, n - 1));
+}
+
+int powRecursFast(int x, int n) {
+    if (n == 1)
+        return x;
+    if (n % 2)
+        return (x * powRecursFast(x, n - 1));
+    else {
+        int c = powRecursFast(x, n / 2);
+        return c * c;
+    }
+}
+
+void solution2(void) {
+    int x, n, m, result;
+    printf("Введите число:");
+    scanf("%i", &x);
+    printf("Введите степень:");
+    scanf("%i", &n);
+    printf("Выбор метода: 1, 2, 3 \n");
+    scanf("%i", &m);
+    switch (m) {
+        case 1:
+            result = power(x, n);
+            break;
+        case 2:
+            result = powRecurs(x, n);
+            break;
+        case 3:
+            result = powRecursFast(x, n);
+            break;
+        default:
+            result = 0;
+            break;
+    }
+    printf("%i", result);
+}
+
+
+// 3. **Исполнитель Калькулятор преобразует целое число, записанное на экране. У исполнителя две команды, каждой команде присвоен номер:
+//      Прибавь 1
+//      Умножь на 2
+// Первая команда увеличивает число на экране на 1, вторая увеличивает это число в 2 раза.
+// Сколько существует программ, которые число 3 преобразуют в число 20?
+int calc(int start, int stop, int add, int multiply) {
+    if (start == stop) {
+        return 1;
+    } else if (start > stop) {
+        return 0;
+    } else {
+        return calc(start + add, stop, add, multiply) + calc(start * multiply, stop, add, multiply);
+    }
+}
+
+void solution3(void) {
+    int result = calc(3, 20, 1, 2);
+    printf("Всего существует %i программ, которые число 3 преобразуют в число 20 \n", result);
+}
+
 
 int main(int argc, const char * argv[]) {
     int select = 0;
@@ -30,12 +160,6 @@ int main(int argc, const char * argv[]) {
             case 3:
                 solution3();
                 break;
-            case 4:
-                solution4();
-                break;
-            case  5:
-                solution5();
-                break;
             case 0:
                 printf("Пока! \n");
                 break;
@@ -44,123 +168,4 @@ int main(int argc, const char * argv[]) {
         }
     } while (select != 0);
     return 0;
-}
-
-
-void menu() {
-    printf("\n");
-    printf("******************\n");
-    printf("  1 - Задача 1 \n");
-    printf("  2 - Задача 2 \n");
-    printf("  3 - Задача 3 \n");
-    printf("  4 - Задача 4 \n");
-    printf("  5 - Задача 5 \n");
-    printf("  0 - Выход \n");
-    printf("******************\n");
-}
-
-// 1. Ввести вес и рост человека. Рассчитать и вывести индекс массы тела по формуле I=m/(h*h); где m-масса тела в килограммах, h - рост в метрах.
-
-void solution1() {
-    double bmi, height, weight;
-    printf("Введите свой рост в см\n");
-    scanf("%lf", &height);
-    printf("Введите свой вес в кг\n");
-    scanf("%lf", &weight);
-    bmi = weight / (height / 100 * height / 100);
-    printf("Индекс массы тела: %lf \n", bmi);
-}
-
-// 2. Найти максимальное из четырех чисел. Массивы не использовать.
-
-void solution2() {
-    double a, b, c, d, max;
-    printf("Введите первое число\n");
-    scanf("%lf", &a);
-    printf("Введите второе число\n");
-    scanf("%lf", &b);
-    printf("Введите третье число\n");
-    scanf("%lf", &c);
-    printf("Введите четвертое число\n");
-    scanf("%lf", &d);
-    max = a;
-    
-    if (max < b) {
-        max = b;
-    }
-    if (max < c) {
-        max = c;
-    }
-    if (max < d) {
-        max = d;
-    }
-    printf("Наибольшее число %lf \n", max);
-}
-
-// 3. Написать программу обмена значениями двух целочисленных переменных:
-// a. с использованием третьей переменной;
-// b. *без использования третьей переменной.
-
-void solution3() {
-    int a, b, temp;
-    a = 7;
-    b = 11;
-    printf("a = %i, b = %i \n", a, b);
-    temp = a;
-    a = b;
-    b = temp;
-    printf("a = %i, b = %i \n", a, b);
-    a = a + b;
-    b = a - b;
-    a = a - b;
-    printf("a = %i, b = %i \n", a, b);
-    a = a ^ b;
-    b = b ^ a;
-    a = a ^ b;
-    printf("a = %i, b = %i \n", a, b);
-}
-
-// 4. Написать программу нахождения корней заданного квадратного уравнения.
-
-void solution4() {
-    double a, b, c, d, x1, x2;
-    printf("Введите коэффициент a \n");
-    scanf("%lf", &a);
-    printf("Введите коэффициент b \n");
-    scanf("%lf", &b);
-    printf("Введите коэффициент c \n");
-    scanf("%lf", &c);
-    d = (b * b) - (4 * a * c);
-    if (d < 0) {
-        printf("Корней нет \n");
-    } else if (d == 0) {
-        x1 = -b / (2 * a);
-        printf("Один корень: %lf \n", x1);
-    } else if (d > 0) {
-        double sd = sqrt(d);
-        x1 = (-b + sd) / (2 * a);
-        x2 = (-b - sd) / (2 * a);
-        printf("Корней два: \n x1 = %lf \n x2 = %lf \n", x1, x2);
-    }
-}
-
-// 5. С клавиатуры вводится номер месяца. Требуется определить, к какому времени года он относится.
-
-void solution5() {
-    int n;
-    printf("Введите номер месяца n \n");
-    scanf("%i", &n);
-    
-    if (n == 1 || n == 2 || n == 12) {
-        printf("Зима");
-    } else if (n == 3 || n == 4 || n == 5) {
-        printf("Весна");
-    } else if (n == 6 || n == 7 || n == 8) {
-        printf("Лето");
-    } else if (n == 9 || n == 10 || n == 11) {
-        printf("Осень");
-    } else {
-        printf("Такого месяца нет");
-    }
-    
 }
