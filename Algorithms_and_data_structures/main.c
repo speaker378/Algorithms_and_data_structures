@@ -5,167 +5,219 @@
 //  Created by Сергей Черных on 15.12.2021.
 //
 
+// 1. Попробовать оптимизировать пузырьковую сортировку. Сравнить количество операций сравнения
+//    оптимизированной и не оптимизированной программы. Написать функции сортировки, которые
+//    возвращают количество операций.
+// 2. *Реализовать шейкерную сортировку.
+// 3. Реализовать бинарный алгоритм поиска в виде функции, которой передается отсортированный
+//    массив. Функция возвращает индекс найденного элемента или -1, если элемент не найден.
+// 4. *Подсчитать количество операций для каждой из сортировок и сравнить его с асимптотической
+//    сложностью алгоритма.
+
 #include <stdio.h>
-#include <math.h>
-typedef enum { false, true } bool;
+#include <stdlib.h>
+#include <sys/time.h>
 
-void menu(void) {
-    printf("\n");
-    printf("******************\n");
-    printf("  1 - Задача 1 \n");
-    printf("  2 - Задача 2 \n");
-    printf("  3 - Задача 3 \n");
-    printf("  0 - Выход \n");
-    printf("******************\n");
+struct timeval tv1 , tv2 , dtv;
+struct timezone tz;
+
+void time_start(void)
+{
+    gettimeofday (&tv1, &tz);
 }
 
-// 1. Реализовать функцию перевода из десятичной системы в двоичную, используя рекурсию.
-int decToBinInteger(int dec) {
-    if (dec == 0)
-        return 0;
-    else
-        return (dec % 2 + 10 * decToBinInteger(dec / 2));
-}
-
-double decToBinFraction(double dec) {
-    static long count = 1;
-    count *= 10;
-    if (dec < 0.0001) {
-        count = 1;
-        return 0;
+long time_stop(void)
+{
+    gettimeofday (&tv2, &tz);
+    dtv.tv_sec = tv2.tv_sec - tv1.tv_sec;
+    dtv.tv_usec = tv2.tv_usec - tv1.tv_usec;
+    if (dtv.tv_usec < 0)
+    {
+        dtv.tv_sec--;
+        dtv.tv_usec += 1000000;
     }
-    else {
-        double d = dec * 2;
-        double i = (int) d;
-        double f = d - i;
-        return (i / count + decToBinFraction(f));
-    }
+    return dtv.tv_sec * 1000 + dtv.tv_usec / 1000;
 }
 
-void solution1(void) {
-    int integer, resultInteger;
-    double num, fraction, resultFraction, result;
-    bool sign;
-    printf("Введите число:");
-    scanf("%lf", &num);
-    
-    sign = (num < 0) ? true : false;
-    num = fabs(num);
-    
-    integer = (int) num;
-    resultInteger = decToBinInteger(num);
-    fraction = num - integer;
-    resultFraction = decToBinFraction(fraction);
-    result = resultInteger + resultFraction;
-    printf("%lf", (sign) ? -result : result);
+void swap (int *a, int *b)
+{
+    *a = *a ^ *b;
+    *b = *a ^ *b;
+    *a = *b ^ *a;
 }
 
-// 2. Реализовать функцию возведения числа a в степень b:
-//      a. без рекурсии;
-//      b. рекурсивно;
-//      c. *рекурсивно, используя свойство четности степени.
-int power(int x, int n)
- {
-     int a = 1;
-     while(n) {
-         if(n % 2) {
-             a *= x;
-             n -= 1;
-         }
-         else{
-             x *= x;
-             n /= 2;
-         }
-     }
-     return a;
- }
-
-int powRecurs(int x, int n) {
-    if (n == 1)
-        return x;
-    else
-        return (x * powRecurs(x, n - 1));
+void print (int N, int *a)
+{
+    int i;
+    for ( i = 0; i < N; i ++)
+        printf ( "%6i", a [ i ]);
+    printf ( "\n" );
 }
 
-int powRecursFast(int x, int n) {
-    if (n == 1)
-        return x;
-    if (n % 2)
-        return (x * powRecursFast(x, n - 1));
-    else {
-        int c = powRecursFast(x, n / 2);
-        return c * c;
+void randomListGenerator (int size, int arr[])
+{
+    srand( (unsigned int) time(NULL) );
+    for (int i = 0; i < size; i++) {
+        arr[i] = rand();
     }
 }
 
-void solution2(void) {
-    int x, n, m, result;
-    printf("Введите число:");
-    scanf("%i", &x);
-    printf("Введите степень:");
-    scanf("%i", &n);
-    printf("Выбор метода: 1, 2, 3 \n");
-    scanf("%i", &m);
-    switch (m) {
-        case 1:
-            result = power(x, n);
-            break;
-        case 2:
-            result = powRecurs(x, n);
-            break;
-        case 3:
-            result = powRecursFast(x, n);
-            break;
-        default:
-            result = 0;
-            break;
-    }
-    printf("%i", result);
-}
+void simpleBubbleSort (int size, int data[])
+{
+    printf("Simple bubble sort of %i items \n", size);
+//    puts("Array after calling simple bubble sort");
+//    print(size ,data);
+    int comparisons = 0, swaps = 0, worst = size * size;
+    long time;
+    double difference;
 
-
-// 3. **Исполнитель Калькулятор преобразует целое число, записанное на экране. У исполнителя две команды, каждой команде присвоен номер:
-//      Прибавь 1
-//      Умножь на 2
-// Первая команда увеличивает число на экране на 1, вторая увеличивает это число в 2 раза.
-// Сколько существует программ, которые число 3 преобразуют в число 20?
-int calc(int start, int stop, int add, int multiply) {
-    if (start == stop) {
-        return 1;
-    } else if (start > stop) {
-        return 0;
-    } else {
-        return calc(start + add, stop, add, multiply) + calc(start * multiply, stop, add, multiply);
-    }
-}
-
-void solution3(void) {
-    int result = calc(3, 20, 1, 2);
-    printf("Всего существует %i программ, которые число 3 преобразуют в число 20 \n", result);
-}
-
-
-int main(int argc, const char * argv[]) {
-    int select = 0;
-    do {
-        menu();
-        scanf("%i", &select);
-        switch (select) {
-            case 1:
-                solution1();
-                break;
-            case 2:
-                solution2();
-                break;
-            case 3:
-                solution3();
-                break;
-            case 0:
-                printf("Пока! \n");
-                break;
-            default:
-                printf("Ошибка выбора! \n");
+    time_start();
+    for (int i = 0; i < size; i ++)
+        for (int j = 0; j < size - 1; j++)
+        {
+            comparisons++;
+            if ( data[j] > data[j + 1])
+            {
+                swaps++;
+                swap (&data[j], &data[j + 1]);
+            }
         }
-    } while (select != 0);
+    time = time_stop();
+
+    difference = (double) worst / (double) swaps;
+//    puts("Array after calling simple bubble sort");
+//    print(size ,data);
+    printf("Total comparisons: %i \n", comparisons);
+    printf("Total swaps: %i \n", swaps);
+    printf("Total worst case swaps: %i \n", worst);
+    printf("The result is %lf times better \n", difference);
+    printf("Lead time: %ld ms \n", time);
+    puts("======================================\n");
+}
+
+void improvedBubbleSort (int size, int data[])
+{
+    printf("Improved bubble sort of %i items \n", size);
+//    puts("Array after calling improved bubble sort");
+//    print(size ,data);
+    int comparisons = 0, swaps = 0, worst = size * size;
+    long time;
+    double difference;
+
+    time_start();
+    for (int i = 0; i < size; i ++)
+    {
+        int flag = 1;
+        for (int j = 0; j < size - (i + 1); j++)
+        {
+                comparisons++;
+                if (data[j] > data[j + 1]) {
+                    flag = 0;
+                    swaps++;
+                    swap(&data[j], &data[j + 1]);
+                }
+        }
+        if (flag) {
+            break;
+        }
+    }
+    time = time_stop();
+
+    difference = (double) worst / (double) swaps;
+//    puts("Array after calling improved bubble sort");
+//    print(size ,data);
+    printf("Total comparisons: %i \n", comparisons);
+    printf("Total swaps: %i \n", swaps);
+    printf("Total worst case swaps: %i \n", worst);
+    printf("The result is %lf times better \n", difference);
+    printf("Lead time: %ld ms \n", time);
+    puts("======================================\n");
+}
+
+void shekerSort(int size, int data[])
+{
+    printf("Shaker sort of %i items \n", size);
+//    puts("Array after calling shaker sort");
+//    print(size ,data);
+
+    int flag = 1, left = 0, right = size - 1;
+    int comparisons = 0, swaps = 0, worst = size * size;
+    long time;
+    double difference;
+
+    time_start();
+    while ((left < right) && flag)
+    {
+        flag = 0;
+        comparisons++;
+        for (int i = left; i < right; i++)
+        {
+            if (data[i] > data[i + 1])
+            {
+                swaps++;
+                swap(&data[i], &data[i + 1]);
+                flag = 1;
+            }
+        }
+        right--;
+        for (int i = right; i>left; i--)
+        {
+            comparisons++;
+            if (data[i - 1] > data[i])
+            {
+                swaps++;
+                swap(&data[i], &data[i - 1]);
+                flag = 1;
+            }
+        }
+        left++;
+    }
+    time = time_stop();
+    difference = (double) worst / (double) swaps;
+//    puts("Array after calling shaker sort");
+//    print(size ,data);
+    printf("Total comparisons: %i \n", comparisons);
+    printf("Total swaps: %i \n", swaps);
+    printf("Total worst case swaps: %i \n", worst);
+    printf("The result is %lf times better \n", difference);
+    printf("Lead time: %ld ms \n", time);
+    puts("======================================\n");
+}
+
+int binarysearch(int search, int data[], int size)
+{
+    int left, right, middle;
+    left = 0;
+    right = size - 1;
+    while (left <= right)
+    {
+        middle = left + (right - left) / 2;
+        if (search < data[middle])
+            right = middle - 1;
+        else if (search > data[middle])
+            left = middle + 1;
+        else
+            return middle;
+    }
+    return -1;
+}
+
+int main (int argc , char * argv [])
+{
+    int size = 10000;
+    int data [size];
+    randomListGenerator(size, data);
+    simpleBubbleSort(size, data);
+
+    randomListGenerator(size, data);
+    improvedBubbleSort(size, data);
+
+    randomListGenerator(size, data);
+    shekerSort(size, data);
+
+    int search_value = data[(rand() % size)];
+    int index_search_value = binarysearch(search_value, data, size);
+    printf("Index search value: %i \n", index_search_value);
+
     return 0;
 }
