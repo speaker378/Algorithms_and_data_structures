@@ -4,220 +4,85 @@
 //
 //  Created by Сергей Черных on 15.12.2021.
 //
+//
+//  1. *Количество маршрутов с препятствиями. Реализовать чтение массива с препятствием и нахождение количество маршрутов.
+//  Например, карта: 3x3
+//  1 1 1
+//  0 1 0
+//  0 1 0
+//  2. Решить задачу о нахождении длины максимальной последовательности с помощью матрицы.
+//  3. ***Требуется обойти конём шахматную доску размером NxM, пройдя через все поля доски по одному разу. Здесь алгоритм решения такой же как и в задаче о 8 ферзях. Разница только в проверке положения коня.
 
-// 1. Попробовать оптимизировать пузырьковую сортировку. Сравнить количество операций сравнения
-//    оптимизированной и не оптимизированной программы. Написать функции сортировки, которые
-//    возвращают количество операций.
-// 2. *Реализовать шейкерную сортировку.
-// 3. Реализовать бинарный алгоритм поиска в виде функции, которой передается отсортированный
-//    массив. Функция возвращает индекс найденного элемента или -1, если элемент не найден.
-// 4. *Подсчитать количество операций для каждой из сортировок и сравнить его с асимптотической
-//    сложностью алгоритма.
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
+#define row 5
+#define column 5
 
-struct timeval tv1 , tv2 , dtv;
-struct timezone tz;
-
-void time_start(void)
+void print (int n, int m, int a[row][column])
 {
-    gettimeofday (&tv1, &tz);
-}
-
-long time_stop(void)
-{
-    gettimeofday (&tv2, &tz);
-    dtv.tv_sec = tv2.tv_sec - tv1.tv_sec;
-    dtv.tv_usec = tv2.tv_usec - tv1.tv_usec;
-    if (dtv.tv_usec < 0)
+    int i, j;
+    for (i = 0; i < n; i++)
     {
-        dtv.tv_sec--;
-        dtv.tv_usec += 1000000;
-    }
-    return dtv.tv_sec * 1000 + dtv.tv_usec / 1000;
-}
-
-void swap (int *a, int *b)
-{
-    *a = *a ^ *b;
-    *b = *a ^ *b;
-    *a = *b ^ *a;
-}
-
-void print (int N, int *a)
-{
-    int i;
-    for ( i = 0; i < N; i ++)
-        printf ( "%6i", a [ i ]);
-    printf ( "\n" );
-}
-
-void randomListGenerator (int size, int arr[])
-{
-    srand( (unsigned int) time(NULL) );
-    for (int i = 0; i < size; i++) {
-        arr[i] = rand();
-    }
-}
-
-void simpleBubbleSort (int size, int data[])
-{
-    printf("Simple bubble sort of %i items \n", size);
-//    puts("Array after calling simple bubble sort");
-//    print(size ,data);
-    int comparisons = 0, swaps = 0, worst = size * size;
-    long time;
-    double difference;
-
-    time_start();
-    for (int i = 0; i < size; i ++)
-        for (int j = 0; j < size - 1; j++)
+        for (j = 0; j < m; j++)
         {
-            comparisons++;
-            if ( data[j] > data[j + 1])
+            printf("%4d", a[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+void task1 (int field[row][column], int map[row][column])
+{
+    int i, j, value = 1;
+    
+    for (j = 0; j < column; j ++)
+    {
+        if (map[0][j] == 0)
+        {
+            value = 0;
+        }
+        field[0][j] = value;
+    }
+    
+    value = 1;
+    for (i = 1; i < row; i ++)
+    {
+        if (map[i][0] == 0)
+        {
+            value = 0;
+        }
+        field[i][0] = value;
+        
+        for (j = 1; j < column; j ++)
+        {
+            if (map[i][j] == 0)
             {
-                swaps++;
-                swap (&data[j], &data[j + 1]);
+                field[i][j] = 0;
             }
-        }
-    time = time_stop();
-
-    difference = (double) worst / (double) swaps;
-//    puts("Array after calling simple bubble sort");
-//    print(size ,data);
-    printf("Total comparisons: %i \n", comparisons);
-    printf("Total swaps: %i \n", swaps);
-    printf("Total worst case swaps: %i \n", worst);
-    printf("The result is %lf times better \n", difference);
-    printf("Lead time: %ld ms \n", time);
-    puts("======================================\n");
-}
-
-void improvedBubbleSort (int size, int data[])
-{
-    printf("Improved bubble sort of %i items \n", size);
-//    puts("Array after calling improved bubble sort");
-//    print(size ,data);
-    int comparisons = 0, swaps = 0, worst = size * size;
-    long time;
-    double difference;
-
-    time_start();
-    for (int i = 0; i < size; i ++)
-    {
-        int flag = 1;
-        for (int j = 0; j < size - (i + 1); j++)
-        {
-                comparisons++;
-                if (data[j] > data[j + 1]) {
-                    flag = 0;
-                    swaps++;
-                    swap(&data[j], &data[j + 1]);
-                }
-        }
-        if (flag) {
-            break;
-        }
-    }
-    time = time_stop();
-
-    difference = (double) worst / (double) swaps;
-//    puts("Array after calling improved bubble sort");
-//    print(size ,data);
-    printf("Total comparisons: %i \n", comparisons);
-    printf("Total swaps: %i \n", swaps);
-    printf("Total worst case swaps: %i \n", worst);
-    printf("The result is %lf times better \n", difference);
-    printf("Lead time: %ld ms \n", time);
-    puts("======================================\n");
-}
-
-void shekerSort(int size, int data[])
-{
-    printf("Shaker sort of %i items \n", size);
-//    puts("Array after calling shaker sort");
-//    print(size ,data);
-
-    int flag = 1, left = 0, right = size - 1;
-    int comparisons = 0, swaps = 0, worst = size * size;
-    long time;
-    double difference;
-
-    time_start();
-    while ((left < right) && flag)
-    {
-        flag = 0;
-        comparisons++;
-        for (int i = left; i < right; i++)
-        {
-            if (data[i] > data[i + 1])
+            else
             {
-                swaps++;
-                swap(&data[i], &data[i + 1]);
-                flag = 1;
+                field[i][j] = field[i][j - 1] + field[i - 1][j];
             }
+            
         }
-        right--;
-        for (int i = right; i>left; i--)
-        {
-            comparisons++;
-            if (data[i - 1] > data[i])
-            {
-                swaps++;
-                swap(&data[i], &data[i - 1]);
-                flag = 1;
-            }
-        }
-        left++;
     }
-    time = time_stop();
-    difference = (double) worst / (double) swaps;
-//    puts("Array after calling shaker sort");
-//    print(size ,data);
-    printf("Total comparisons: %i \n", comparisons);
-    printf("Total swaps: %i \n", swaps);
-    printf("Total worst case swaps: %i \n", worst);
-    printf("The result is %lf times better \n", difference);
-    printf("Lead time: %ld ms \n", time);
-    puts("======================================\n");
 }
 
-int binarysearch(int search, int data[], int size)
-{
-    int left, right, middle;
-    left = 0;
-    right = size - 1;
-    while (left <= right)
-    {
-        middle = left + (right - left) / 2;
-        if (search < data[middle])
-            right = middle - 1;
-        else if (search > data[middle])
-            left = middle + 1;
-        else
-            return middle;
-    }
-    return -1;
-}
 
 int main (int argc , char * argv [])
 {
-    int size = 10000;
-    int data [size];
-    randomListGenerator(size, data);
-    simpleBubbleSort(size, data);
-
-    randomListGenerator(size, data);
-    improvedBubbleSort(size, data);
-
-    randomListGenerator(size, data);
-    shekerSort(size, data);
-
-    int search_value = data[(rand() % size)];
-    int index_search_value = binarysearch(search_value, data, size);
-    printf("Index search value: %i \n", index_search_value);
-
+    int A[row][column];
+    int MAP[row][column] = {
+        {1, 1, 0, 1, 1},
+        {1, 1, 1, 1, 1},
+        {0, 1, 0, 1, 0},
+        {1, 1, 1, 1, 1},
+        {1, 1, 0, 1, 1},
+    };
+    
+    task1(A, MAP);
+    print(row, column, A);
+    
     return 0;
 }
