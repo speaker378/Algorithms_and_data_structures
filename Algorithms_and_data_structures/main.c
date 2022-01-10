@@ -142,11 +142,52 @@ void check_brackets(char str[])
     }
 }
 
+void copyStack(struct Stack *from, struct Stack *to) {
+    struct Stack temp;
+    temp.size = stackSizeInit;
+    temp.maxSize = 50;
+    temp.head = NULL;
+    
+    StackNode *current = from->head;
+    while (current != NULL) {
+        pushToStack(current->value, &temp);
+        current = current->next;
+    }
+    current = temp.head;
+    while (current != NULL) {
+        pushToStack(current->value, to);
+        current = current->next;
+    }
+}
+
+
+
 int main ()
 {
     dec2bin(27);
+    
+    
     check_brackets("(2+(2*2))");
     check_brackets("[2/{5*(4+7))]");
+    
+    
+    struct Stack Stack1;
+    Stack1.size = stackSizeInit;
+    Stack1.maxSize = 50;
+    Stack1.head = NULL;
+    pushToStack("a", &Stack1);
+    pushToStack("b", &Stack1);
+    pushToStack("c", &Stack1);
+    
+    struct Stack Stack2;
+    Stack2.size = stackSizeInit;
+    Stack2.maxSize = 50;
+    Stack2.head = NULL;
+
+    copyStack(&Stack1, &Stack2);
+    printStack(&Stack1);
+    printStack(&Stack2);
+    
     
     return 0;
 }
