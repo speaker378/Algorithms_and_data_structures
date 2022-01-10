@@ -18,7 +18,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#define T int
+#include <string.h>
+#define T char
 #define stackSizeInit -1
 
 struct StackNode
@@ -53,7 +54,7 @@ void pushToStack (T value, struct Stack *stack)
 
 T popOfStack (struct Stack *stack)
 {
-    if (stack->size == 0)
+    if (stack->size == stackSizeInit)
     {
         puts("Stack is empty!");
         return NULL;
@@ -72,9 +73,10 @@ void printStack(struct Stack *stack)
 {
     StackNode *current = stack->head;
     while (current != NULL) {
-        printf("|%i| \n", current->value);
+        printf("|%c| \n", current->value);
         current = current->next;
     }
+    printf("\n");
 }
 
 void dec2bin(int dec)
@@ -99,9 +101,52 @@ void dec2bin(int dec)
     printf("\n");
 }
 
+void check_brackets(char str[])
+{
+    struct Stack Stack;
+    Stack.size = stackSizeInit;
+    Stack.maxSize = 50;
+    Stack.head = NULL;
+    int stringSize = strlen(str);
+    int wrong = 0;
+    
+    for (int i = 0; i <= stringSize; ++i) {
+        if((str[i] == '(') || (str[i] == '{') || (str[i] == '['))
+        {
+            pushToStack(str[i], &Stack);
+        }
+        if((str[i] == ')') || (str[i] == '}') || (str[i] == ']')) {
+            char stackValue = popOfStack(&Stack);
+            char value = str[i];
+            if (stackValue == '(')
+                if (value != ')') {
+                    wrong = 1;
+                    break;
+                }
+            if (stackValue == '{')
+                if (value != '}') {
+                    wrong = 1;
+                    break;
+                }
+            if (stackValue == '[')
+                if (value != ']') {
+                    wrong = 1;
+                    break;
+                }
+        }
+    }
+    if ((Stack.head != NULL) || wrong) {
+        printf("wrong expression\n");
+    } else {
+        printf("right expression\n");
+    }
+}
+
 int main ()
 {
     dec2bin(27);
+    check_brackets("(2+(2*2))");
+    check_brackets("[2/{5*(4+7))]");
     
     return 0;
 }
