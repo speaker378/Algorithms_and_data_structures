@@ -5,219 +5,97 @@
 //  Created by Сергей Черных on 15.12.2021.
 //
 
-// 1. Попробовать оптимизировать пузырьковую сортировку. Сравнить количество операций сравнения
-//    оптимизированной и не оптимизированной программы. Написать функции сортировки, которые
-//    возвращают количество операций.
-// 2. *Реализовать шейкерную сортировку.
-// 3. Реализовать бинарный алгоритм поиска в виде функции, которой передается отсортированный
-//    массив. Функция возвращает индекс найденного элемента или -1, если элемент не найден.
-// 4. *Подсчитать количество операций для каждой из сортировок и сравнить его с асимптотической
-//    сложностью алгоритма.
+//  1. Реализовать перевод из десятичной в двоичную систему счисления с использованием стека.
+//
+//  2. Добавить в программу «реализация стека на основе односвязного списка» проверку на выделение памяти. Если память не выделяется, то выводится соответствующее сообщение. Постарайтесь создать ситуацию, когда память не будет выделяться (добавлением большого количества данных).
+//
+//  3. Написать программу, которая определяет, является ли введенная скобочная последовательность правильной. Примеры правильных скобочных выражений: (), ([])(), {}(), ([{}]), неправильных — )(, ())({), (, ])}), ([(]) для скобок [,(,{.
+//  Например: (2+(2*2)) или [2/{5*(4+7)}]
+//  4. *Создать функцию, копирующую односвязный список (то есть создает в памяти копию односвязного списка, не удаляя первый список).
+//
+//  5. **Реализовать алгоритм перевода из инфиксной записи арифметического выражения в постфиксную.
+//
+//  6. *Реализовать очередь.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
+#define T int
+#define stackSizeInit -1
 
-struct timeval tv1 , tv2 , dtv;
-struct timezone tz;
-
-void time_start(void)
+struct StackNode
 {
-    gettimeofday (&tv1, &tz);
-}
+    T value;
+    struct StackNode *next;
+    
+};
+typedef struct StackNode StackNode;
 
-long time_stop(void)
+struct Stack
 {
-    gettimeofday (&tv2, &tz);
-    dtv.tv_sec = tv2.tv_sec - tv1.tv_sec;
-    dtv.tv_usec = tv2.tv_usec - tv1.tv_usec;
-    if (dtv.tv_usec < 0)
+    StackNode *head;
+    int size;
+    int maxSize;
+};
+
+void pushToStack (T value, struct Stack *stack)
+{
+    if (stack->size + 1 >= stack->maxSize)
     {
-        dtv.tv_sec--;
-        dtv.tv_usec += 1000000;
+        puts("Error stack size!");
+        return;
     }
-    return dtv.tv_sec * 1000 + dtv.tv_usec / 1000;
-}
+    
+    StackNode *temp = (StackNode*) malloc(sizeof(StackNode));
+    temp->value = value;
+    temp->next = stack->head;
+    stack->head = temp;
+    stack->size++;
+};
 
-void swap (int *a, int *b)
+T popOfStack (struct Stack *stack)
 {
-    *a = *a ^ *b;
-    *b = *a ^ *b;
-    *a = *b ^ *a;
-}
-
-void print (int N, int *a)
-{
-    int i;
-    for ( i = 0; i < N; i ++)
-        printf ( "%6i", a [ i ]);
-    printf ( "\n" );
-}
-
-void randomListGenerator (int size, int arr[])
-{
-    srand( (unsigned int) time(NULL) );
-    for (int i = 0; i < size; i++) {
-        arr[i] = rand();
-    }
-}
-
-void simpleBubbleSort (int size, int data[])
-{
-    printf("Simple bubble sort of %i items \n", size);
-//    puts("Array after calling simple bubble sort");
-//    print(size ,data);
-    int comparisons = 0, swaps = 0, worst = size * size;
-    long time;
-    double difference;
-
-    time_start();
-    for (int i = 0; i < size; i ++)
-        for (int j = 0; j < size - 1; j++)
-        {
-            comparisons++;
-            if ( data[j] > data[j + 1])
-            {
-                swaps++;
-                swap (&data[j], &data[j + 1]);
-            }
-        }
-    time = time_stop();
-
-    difference = (double) worst / (double) swaps;
-//    puts("Array after calling simple bubble sort");
-//    print(size ,data);
-    printf("Total comparisons: %i \n", comparisons);
-    printf("Total swaps: %i \n", swaps);
-    printf("Total worst case swaps: %i \n", worst);
-    printf("The result is %lf times better \n", difference);
-    printf("Lead time: %ld ms \n", time);
-    puts("======================================\n");
-}
-
-void improvedBubbleSort (int size, int data[])
-{
-    printf("Improved bubble sort of %i items \n", size);
-//    puts("Array after calling improved bubble sort");
-//    print(size ,data);
-    int comparisons = 0, swaps = 0, worst = size * size;
-    long time;
-    double difference;
-
-    time_start();
-    for (int i = 0; i < size; i ++)
+    if (stack->size == 0)
     {
-        int flag = 1;
-        for (int j = 0; j < size - (i + 1); j++)
-        {
-                comparisons++;
-                if (data[j] > data[j + 1]) {
-                    flag = 0;
-                    swaps++;
-                    swap(&data[j], &data[j + 1]);
-                }
-        }
-        if (flag) {
-            break;
-        }
+        puts("Stack is empty!");
+        return NULL;
     }
-    time = time_stop();
+    StackNode* next = NULL;
+    T value;
+    value = stack->head->value;
+    next = stack->head;
+    stack->head = stack->head->next;
+    free(next);
+    stack->size--;
+    return value;
+};
 
-    difference = (double) worst / (double) swaps;
-//    puts("Array after calling improved bubble sort");
-//    print(size ,data);
-    printf("Total comparisons: %i \n", comparisons);
-    printf("Total swaps: %i \n", swaps);
-    printf("Total worst case swaps: %i \n", worst);
-    printf("The result is %lf times better \n", difference);
-    printf("Lead time: %ld ms \n", time);
-    puts("======================================\n");
-}
-
-void shekerSort(int size, int data[])
+void printStack(struct Stack *stack)
 {
-    printf("Shaker sort of %i items \n", size);
-//    puts("Array after calling shaker sort");
-//    print(size ,data);
-
-    int flag = 1, left = 0, right = size - 1;
-    int comparisons = 0, swaps = 0, worst = size * size;
-    long time;
-    double difference;
-
-    time_start();
-    while ((left < right) && flag)
-    {
-        flag = 0;
-        comparisons++;
-        for (int i = left; i < right; i++)
-        {
-            if (data[i] > data[i + 1])
-            {
-                swaps++;
-                swap(&data[i], &data[i + 1]);
-                flag = 1;
-            }
-        }
-        right--;
-        for (int i = right; i>left; i--)
-        {
-            comparisons++;
-            if (data[i - 1] > data[i])
-            {
-                swaps++;
-                swap(&data[i], &data[i - 1]);
-                flag = 1;
-            }
-        }
-        left++;
+    StackNode *current = stack->head;
+    while (current != NULL) {
+        printf("|%i| \n", current->value);
+        current = current->next;
     }
-    time = time_stop();
-    difference = (double) worst / (double) swaps;
-//    puts("Array after calling shaker sort");
-//    print(size ,data);
-    printf("Total comparisons: %i \n", comparisons);
-    printf("Total swaps: %i \n", swaps);
-    printf("Total worst case swaps: %i \n", worst);
-    printf("The result is %lf times better \n", difference);
-    printf("Lead time: %ld ms \n", time);
-    puts("======================================\n");
-}
-
-int binarysearch(int search, int data[], int size)
-{
-    int left, right, middle;
-    left = 0;
-    right = size - 1;
-    while (left <= right)
-    {
-        middle = left + (right - left) / 2;
-        if (search < data[middle])
-            right = middle - 1;
-        else if (search > data[middle])
-            left = middle + 1;
-        else
-            return middle;
-    }
-    return -1;
 }
 
 int main (int argc , char * argv [])
 {
-    int size = 10000;
-    int data [size];
-    randomListGenerator(size, data);
-    simpleBubbleSort(size, data);
-
-    randomListGenerator(size, data);
-    improvedBubbleSort(size, data);
-
-    randomListGenerator(size, data);
-    shekerSort(size, data);
-
-    int search_value = data[(rand() % size)];
-    int index_search_value = binarysearch(search_value, data, size);
-    printf("Index search value: %i \n", index_search_value);
-
+    struct Stack Stack;
+    Stack.size = stackSizeInit;
+    Stack.maxSize = 5;
+    Stack.head = NULL;
+    pushToStack(0, &Stack);
+    pushToStack(1, &Stack);
+    pushToStack(2, &Stack);
+    pushToStack(3, &Stack);
+    pushToStack(4, &Stack);
+    pushToStack(5, &Stack);
+    printStack(&Stack);
+    popOfStack(&Stack);
+    popOfStack(&Stack);
+    popOfStack(&Stack);
+    popOfStack(&Stack);
+    popOfStack(&Stack);
+    
     return 0;
 }
