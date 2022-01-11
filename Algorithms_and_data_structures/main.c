@@ -83,27 +83,27 @@ void insertNode(Node **head, int value) {
     }
 }
 
-void preorder(Node *root) {
+void preorderTravers(Node *root) {
     if (root) {
         printf("%i ", root->data);
-        preorder(root->left);
-        preorder(root->right);
+        preorderTravers(root->left);
+        preorderTravers(root->right);
     }
 }
 
-void postorder(Node *root) {
+void postorderTravers(Node *root) {
     if (root) {
-        postorder(root->left);
-        postorder(root->right);
+        postorderTravers(root->left);
+        postorderTravers(root->right);
         printf("%i ", root->data);
     }
 }
 
-void inorder(Node *root) {
+void inorderTravers(Node *root) {
     if (root) {
-        inorder(root->left);
+        inorderTravers(root->left);
         printf("%i ", root->data);
-        inorder(root->right);
+        inorderTravers(root->right);
     }
 }
 
@@ -132,11 +132,11 @@ int main ()
     }
     printTree(root);
     printf("\n");
-    preorder(root);
+    preorderTravers(root);
     printf("\n");
-    postorder(root);
+    postorderTravers(root);
     printf("\n");
-    inorder(root);
+    inorderTravers(root);
     printf("\n");
     printf("%i", search(root, 10));
 
