@@ -5,182 +5,140 @@
 //  Created by Сергей Черных on 15.12.2021.
 //
 
-//  1. Реализовать перевод из десятичной в двоичную систему счисления с использованием стека.
-//  2. Написать программу, которая определяет, является ли введенная скобочная последовательность правильной. Примеры правильных скобочных выражений: (), ([])(), {}(),
-//  ([{}]), неправильных — )(, ())({), (, ])}), ([(]) для скобок [, (, {.
-//  Например: (2+(2*2)) или [2/{5*(4+7)}].
-//  3. *Создать функцию, копирующую односвязный список (то есть создающую в памяти копию односвязного списка без удаления первого списка).
-//  4. *Реализовать алгоритм перевода из инфиксной записи арифметического выражения в постфиксную.
-//  5. Реализовать очередь:
-//      1. С использованием массива.
-//      2. *С использованием односвязного списка.
-//  6. ***Реализовать двустороннюю очередь.
+//  1. Реализовать простейшую хэш-функцию. На вход функции подается строка, на выходе сумма кодов символов.
+//  2. Переписать программу, реализующее двоичное дерево поиска.
+//      а) Добавить в него обход дерева различными способами;
+//      б) Реализовать поиск в двоичном дереве поиска;
+//      в) *Добавить в программу обработку командной строки с помощью которой можно указывать из какого файла считывать данные, каким образом обходить дерево.
+//  3. *Разработать базу данных студентов из двух полей “Имя”, “Возраст”, “Табельный номер” в которой использовать все знания, полученные на уроках.
+//  Считайте данные в двоичное дерево поиска. Реализуйте поиск по какому-нибудь полю базы данных (возраст, вес)
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#define T int
-#define stackSizeInit -1
 
-struct StackNode
+int hash(char *string)
 {
-    T value;
-    struct StackNode *next;
-
-};
-typedef struct StackNode StackNode;
-
-struct Stack
-{
-    StackNode *head;
-    int size;
-    int maxSize;
-};
-
-void pushToStack (T value, struct Stack *stack)
-{
-    if (stack->size + 1 >= stack->maxSize)
+    int result = 0;
+    while(*string)
     {
-        puts("Error stack size!");
-        return;
+        result += *string;
+        string++;
     }
-
-    StackNode *temp = (StackNode*) malloc(sizeof(StackNode));
-    temp->value = value;
-    temp->next = stack->head;
-    stack->head = temp;
-    stack->size++;
+    return result;
 }
 
-T popOfStack (struct Stack *stack)
+
+typedef int T;
+typedef struct Node
 {
-    if (stack->size == stackSizeInit)
+    T data;
+    struct Node *left;
+    struct Node *right;
+    struct Node *parent;
+} Node;
+
+void printTree(Node *root) {
+    if (root)
     {
-        puts("Stack is empty!");
-        return NULL;
-    }
-    StackNode* next = NULL;
-    T value;
-    value = stack->head->value;
-    next = stack->head;
-    stack->head = stack->head->next;
-    free(next);
-    stack->size--;
-    return value;
-}
-
-void printStack(struct Stack *stack)
-{
-    StackNode *current = stack->head;
-    while (current != NULL) {
-        printf("|%i| \n", current->value);
-        current = current->next;
-    }
-    printf("\n");
-}
-
-struct Stack createStack(int size)
-{
-    struct Stack stack;
-    stack.size = stackSizeInit;
-    stack.maxSize = size;
-    stack.head = NULL;
-    return stack;
-}
-
-void dec2bin(int dec)
-{
-    struct Stack Stack = createStack(50);
-
-    while (dec)
-    {
-        pushToStack(dec % 2, &Stack);
-        dec /= 2;
-    }
-
-    StackNode *current = Stack.head;
-    while (current != NULL)
-    {
-        printf("%i", current->value);
-        current = current->next;
-    }
-    printf("\n");
-}
-
-void check_brackets(char str[])
-{
-    struct Stack Stack = createStack(50);
-
-    int stringSize = strlen(str);
-    int wrong = 0;
-
-    for (int i = 0; i <= stringSize; ++i) {
-        if((str[i] == '(') || (str[i] == '{') || (str[i] == '['))
+        printf("%d", root->data);
+        if (root->left || root->right)
         {
-            pushToStack(str[i], &Stack);
+            printf("(");
+            if (root->left)
+                printTree(root->left);
+            else
+                printf("NULL");
+            printf(",");
+            if (root->right)
+                printTree(root->right);
+            else
+                printf("NULL");
+            printf(")");
         }
-        if((str[i] == ')') || (str[i] == '}') || (str[i] == ']')) {
-            char stackValue = popOfStack(&Stack);
-            char value = str[i];
-            if (stackValue == '(')
-                if (value != ')') {
-                    wrong = 1;
-                    break;
-                }
-            if (stackValue == '{')
-                if (value != '}') {
-                    wrong = 1;
-                    break;
-                }
-            if (stackValue == '[')
-                if (value != ']') {
-                    wrong = 1;
-                    break;
-                }
-        }
-    }
-    if ((Stack.head != NULL) || wrong) {
-        printf("wrong expression\n");
-    } else {
-        printf("right expression\n");
     }
 }
 
-void copyStack(struct Stack *from, struct Stack *to) {
-    struct Stack temp = createStack(50);
+Node* createNode(T value, Node *parent)
+{
+    Node* temp = (Node*)malloc(sizeof(Node));
+    temp->left = temp->right = NULL;
+    temp->data = value;
+    temp->parent = parent;
+    return temp;
+}
 
-    StackNode *current = from->head;
-    while (current != NULL) {
-        pushToStack(current->value, &temp);
-        current = current->next;
-    }
-    current = temp.head;
-    while (current != NULL) {
-        pushToStack(current->value, to);
-        current = current->next;
+void insertNode(Node **head, int value) {
+    if (*head == NULL)
+        *head = createNode(value, NULL);
+    else if (value > (*head)->data) {
+        if ((*head)->right)
+            insertNode(&(*head)->right, value);
+        else
+            (*head)->right = createNode(value, *head);
+    } else  {
+        if ((*head)->left)
+            insertNode(&(*head)->left, value);
+        else
+            (*head)->left = createNode(value, *head);
     }
 }
 
+void preorder(Node *root) {
+    if (root) {
+        printf("%i ", root->data);
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
 
+void postorder(Node *root) {
+    if (root) {
+        postorder(root->left);
+        postorder(root->right);
+        printf("%i ", root->data);
+    }
+}
+
+void inorder(Node *root) {
+    if (root) {
+        inorder(root->left);
+        printf("%i ", root->data);
+        inorder(root->right);
+    }
+}
+
+T search(Node *root, T value)
+{
+    if (root == NULL)
+        return -1;
+    else if (root->data == value)
+        return value;
+    else if (root->data <= value)
+        return search(root->right, value);
+    else
+        return search(root->left, value);
+}
 
 int main ()
 {
-    dec2bin(27);
+    int Hash;
+    Hash = hash("Test Text");
+    printf("%i \n", Hash);
 
-
-    check_brackets("(2+(2*2))");
-    check_brackets("[2/{5*(4+7))]");
-
-
-    struct Stack Stack1 = createStack(50);
-    pushToStack(10, &Stack1);
-    pushToStack(27, &Stack1);
-    pushToStack(35, &Stack1);
-    struct Stack Stack2 = createStack(50);
-
-    copyStack(&Stack1, &Stack2);
-    printStack(&Stack1);
-    printStack(&Stack2);
+    int data[10] = {12, 3, 1, 10, 222, 4, 18, 11, 120, 3};
+    Node *root = NULL;
+    for (int i = 0; i <= 9; ++i) {
+        insertNode(&root, data[i]);
+    }
+    printTree(root);
+    printf("\n");
+    preorder(root);
+    printf("\n");
+    postorder(root);
+    printf("\n");
+    inorder(root);
+    printf("\n");
+    printf("%i", search(root, 10));
 
     return 0;
 }
