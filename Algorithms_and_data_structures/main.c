@@ -4,140 +4,183 @@
 //
 //  Created by Сергей Черных on 15.12.2021.
 //
-//
-//  1. *Количество маршрутов с препятствиями. Реализовать чтение массива с препятствием и нахождение количество маршрутов.
-//  Например, карта: 3x3
-//  1 1 1
-//  0 1 0
-//  0 1 0
-//  2. Решить задачу о нахождении длины максимальной последовательности с помощью матрицы.
-//  3. ***Требуется обойти конём шахматную доску размером NxM, пройдя через все поля доски по одному разу. Здесь алгоритм решения такой же как и в задаче о 8 ферзях. Разница только в проверке положения коня.
 
+//  1. Реализовать перевод из десятичной в двоичную систему счисления с использованием стека.
+//  2. Написать программу, которая определяет, является ли введенная скобочная последовательность правильной. Примеры правильных скобочных выражений: (), ([])(), {}(),
+//  ([{}]), неправильных — )(, ())({), (, ])}), ([(]) для скобок [, (, {.
+//  Например: (2+(2*2)) или [2/{5*(4+7)}].
+//  3. *Создать функцию, копирующую односвязный список (то есть создающую в памяти копию односвязного списка без удаления первого списка).
+//  4. *Реализовать алгоритм перевода из инфиксной записи арифметического выражения в постфиксную.
+//  5. Реализовать очередь:
+//      1. С использованием массива.
+//      2. *С использованием односвязного списка.
+//  6. ***Реализовать двустороннюю очередь.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#define T int
+#define stackSizeInit -1
 
-void print (int row, int column, int a[row][column])
+struct StackNode
 {
-    int i, j;
-    for (i = 0; i < row; i++)
+    T value;
+    struct StackNode *next;
+
+};
+typedef struct StackNode StackNode;
+
+struct Stack
+{
+    StackNode *head;
+    int size;
+    int maxSize;
+};
+
+void pushToStack (T value, struct Stack *stack)
+{
+    if (stack->size + 1 >= stack->maxSize)
     {
-        for (j = 0; j < column; j++)
-        {
-            printf("%4d", a[i][j]);
-        }
-        printf("\n");
+        puts("Error stack size!");
+        return;
+    }
+
+    StackNode *temp = (StackNode*) malloc(sizeof(StackNode));
+    temp->value = value;
+    temp->next = stack->head;
+    stack->head = temp;
+    stack->size++;
+}
+
+T popOfStack (struct Stack *stack)
+{
+    if (stack->size == stackSizeInit)
+    {
+        puts("Stack is empty!");
+        return NULL;
+    }
+    StackNode* next = NULL;
+    T value;
+    value = stack->head->value;
+    next = stack->head;
+    stack->head = stack->head->next;
+    free(next);
+    stack->size--;
+    return value;
+}
+
+void printStack(struct Stack *stack)
+{
+    StackNode *current = stack->head;
+    while (current != NULL) {
+        printf("|%i| \n", current->value);
+        current = current->next;
     }
     printf("\n");
 }
 
-void task1 (int m, int n, int field[m][n], int map[m][n])
+struct Stack createStack(int size)
 {
-    int i, j, value = 1;
-    
-    for (j = 0; j < n; j ++)
+    struct Stack stack;
+    stack.size = stackSizeInit;
+    stack.maxSize = size;
+    stack.head = NULL;
+    return stack;
+}
+
+void dec2bin(int dec)
+{
+    struct Stack Stack = createStack(50);
+
+    while (dec)
     {
-        if (map[0][j] == 0)
-        {
-            value = 0;
-        }
-        field[0][j] = value;
+        pushToStack(dec % 2, &Stack);
+        dec /= 2;
     }
-    
-    value = 1;
-    for (i = 1; i < m; i ++)
+
+    StackNode *current = Stack.head;
+    while (current != NULL)
     {
-        if (map[i][0] == 0)
+        printf("%i", current->value);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+void check_brackets(char str[])
+{
+    struct Stack Stack = createStack(50);
+
+    int stringSize = strlen(str);
+    int wrong = 0;
+
+    for (int i = 0; i <= stringSize; ++i) {
+        if((str[i] == '(') || (str[i] == '{') || (str[i] == '['))
         {
-            value = 0;
+            pushToStack(str[i], &Stack);
         }
-        field[i][0] = value;
-        
-        for (j = 1; j < n; j ++)
-        {
-            if (map[i][j] == 0)
-            {
-                field[i][j] = 0;
-            }
-            else
-            {
-                field[i][j] = field[i][j - 1] + field[i - 1][j];
-            }
-            
+        if((str[i] == ')') || (str[i] == '}') || (str[i] == ']')) {
+            char stackValue = popOfStack(&Stack);
+            char value = str[i];
+            if (stackValue == '(')
+                if (value != ')') {
+                    wrong = 1;
+                    break;
+                }
+            if (stackValue == '{')
+                if (value != '}') {
+                    wrong = 1;
+                    break;
+                }
+            if (stackValue == '[')
+                if (value != ']') {
+                    wrong = 1;
+                    break;
+                }
         }
+    }
+    if ((Stack.head != NULL) || wrong) {
+        printf("wrong expression\n");
+    } else {
+        printf("right expression\n");
+    }
+}
+
+void copyStack(struct Stack *from, struct Stack *to) {
+    struct Stack temp = createStack(50);
+
+    StackNode *current = from->head;
+    while (current != NULL) {
+        pushToStack(current->value, &temp);
+        current = current->next;
+    }
+    current = temp.head;
+    while (current != NULL) {
+        pushToStack(current->value, to);
+        current = current->next;
     }
 }
 
 
-int max(int a, int b)
-{
-    return a > b ? a : b;
-}
 
-void lcs(char *X, char *Y, int m, int n)
+int main ()
 {
-    int L[m+1][n+1];
-    
-    for (int i = 0; i <= m; i++)
-    {
-        for (int j = 0; j <= n; j++)
-        {
-            if (i == 0 || j == 0)
-                L[i][j] = 0;
-            else if (X[i-1] == Y[j-1])
-                L[i][j] = L[i-1][j-1] + 1;
-            else
-                L[i][j] = max(L[i-1][j], L[i][j-1]);
-        }
-    }
-    
-    int index = L[m][n];
-    
-    char lcs[index+1];
-    
-    int i = m, j = n;
-    
-    while (i > 0 && j > 0)
-    {
-        if (X[i-1] == Y[j-1])
-        {
-            lcs[index-1] = X[i-1];
-            i--; j--; index--;
-        }
-        else if (L[i-1][j] > L[i][j-1])
-            i--;
-        else
-            j--;
-    }
-    
-    print(m + 1, n + 1, L);
-    printf("LCS: %s \n", lcs);
-}
+    dec2bin(27);
 
 
-int main (int argc , char * argv [])
-{
-    int row = 5;
-    int column = 6;
-    int A[row][column];
-    int MAP[5][6] = {
-        {1, 1, 0, 1, 1, 1},
-        {1, 1, 1, 1, 1, 1},
-        {0, 1, 0, 1, 0, 1},
-        {1, 1, 1, 1, 1, 1},
-        {1, 1, 0, 1, 1, 1},
-    };
-    
-    task1(row, column, A, MAP);
-    print(row, column, A);
-    
-    
-    char X[] = "GEEKMINDS";
-    char Y[] = "GEEKBRAINS";
-    int m = strlen(X);
-    int n = strlen(Y);
-    lcs(X, Y, m, n);
-    
+    check_brackets("(2+(2*2))");
+    check_brackets("[2/{5*(4+7))]");
+
+
+    struct Stack Stack1 = createStack(50);
+    pushToStack(10, &Stack1);
+    pushToStack(27, &Stack1);
+    pushToStack(35, &Stack1);
+    struct Stack Stack2 = createStack(50);
+
+    copyStack(&Stack1, &Stack2);
+    printStack(&Stack1);
+    printStack(&Stack2);
+
     return 0;
 }
-
