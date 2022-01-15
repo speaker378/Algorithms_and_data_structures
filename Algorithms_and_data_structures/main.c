@@ -4,141 +4,128 @@
 //
 //  Created by Сергей Черных on 15.12.2021.
 //
-
-//  1. Реализовать простейшую хэш-функцию. На вход функции подается строка, на выходе сумма кодов символов.
-//  2. Переписать программу, реализующее двоичное дерево поиска.
-//      а) Добавить в него обход дерева различными способами;
-//      б) Реализовать поиск в двоичном дереве поиска;
-//      в) *Добавить в программу обработку командной строки с помощью которой можно указывать из какого файла считывать данные, каким образом обходить дерево.
-//  3. *Разработать базу данных студентов из двух полей “Имя”, “Возраст”, “Табельный номер” в которой использовать все знания, полученные на уроках.
-//  Считайте данные в двоичное дерево поиска. Реализуйте поиск по какому-нибудь полю базы данных (возраст, вес)
+//
+//  1. Написать функции, которые считывают матрицу смежности из файла и выводят ее на экран.
+//
+//  2. Написать рекурсивную функцию обхода графа в глубину.
+//
+//  3. Написать функцию обхода графа в ширину.
+//
+//  4. *Создать библиотеку функций для работы с графами.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Queue.h"
+#define VERTEX 10
+#define PATH "/Users/sergejcernyh/Desktop/matrix.txt"
 
-int hash(char *string)
-{
-    int result = 0;
-    while(*string)
-    {
-        result += *string;
-        string++;
-    }
-    return result;
-}
-
-
-typedef int T;
-typedef struct Node
-{
-    T data;
-    struct Node *left;
-    struct Node *right;
-    struct Node *parent;
-} Node;
-
-void printTree(Node *root) {
-    if (root)
-    {
-        printf("%d", root->data);
-        if (root->left || root->right)
-        {
-            printf("(");
-            if (root->left)
-                printTree(root->left);
-            else
-                printf("NULL");
-            printf(",");
-            if (root->right)
-                printTree(root->right);
-            else
-                printf("NULL");
-            printf(")");
+void createMatrix(int size, int* matrix[size][size], int min, int max) {
+    int i, j;
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+            if (i == j) {
+                matrix[i][j] = 0;
+            } else {
+                int value = min + rand()%(max - min + 1);
+                value = (value%2==0 || value%3==0 || value%5==0) ? 0 : value;
+                matrix[i][j] = value;
+                matrix[j][i] = value;
+            }
         }
     }
 }
 
-Node* createNode(T value, Node *parent)
-{
-    Node* temp = (Node*)malloc(sizeof(Node));
-    temp->left = temp->right = NULL;
-    temp->data = value;
-    temp->parent = parent;
-    return temp;
+void writeMatrixInFile(char* path, int size, int* matrix[size][size]) {
+    FILE* file = fopen(path, "w");
+    int i, j;
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+                fprintf(file, "%i ", matrix[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
 }
 
-void insertNode(Node **head, int value) {
-    if (*head == NULL)
-        *head = createNode(value, NULL);
-    else if (value > (*head)->data) {
-        if ((*head)->right)
-            insertNode(&(*head)->right, value);
-        else
-            (*head)->right = createNode(value, *head);
-    } else  {
-        if ((*head)->left)
-            insertNode(&(*head)->left, value);
-        else
-            (*head)->left = createNode(value, *head);
+
+void scanfMatrix(char* path, int size, int* matrix[size][size]) {
+    FILE* file = fopen(path, "r");
+    int i, j;
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+            fscanf(file, "%d", &matrix[i][j]);
+        }
+    }
+    fclose(file);
+}
+
+
+void printMatrix(int size, int* matrix[size][size]) {
+    int i, j;
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+            printf("%i ", matrix[i][j]);
+        }
+        printf("\n");
     }
 }
 
-void preorderTravers(Node *root) {
-    if (root) {
-        printf("%i ", root->data);
-        preorderTravers(root->left);
-        preorderTravers(root->right);
+void dfs(int* matrix[VERTEX][VERTEX], int mark[VERTEX], int v) {
+     int i;
+     mark[v] = 1;
+     printf("%d ", v + 1);
+    
+     for (i = 0; i < VERTEX; i++) {
+         if (matrix[v][i] != 0 && mark[i] == 0) {
+             printf("-> ");
+             dfs(matrix, mark, i);
+         }
+     }
+ }
+
+void bfs(int* matrix[VERTEX][VERTEX], int mark[VERTEX], int vertex) {
+
+    Queue* queue = createQueue();
+    enQueue(queue, vertex);
+    mark[vertex] = 1;
+    
+    while (!queueIsEmpty(queue)) {
+        int currentV = deQueue(queue);
+        printf("%i -> [", currentV);
+        
+        if (mark[currentV] == 1) {
+            for (int i = 0; i < VERTEX; i++) {
+                if (matrix[currentV][i] != 0 && mark[i] == 0) {
+                    enQueue(queue, i);
+                    mark[i] = 1;
+                    printf(" %i ", i);
+                }
+            }
+            printf("]\n");
+        }
     }
 }
 
-void postorderTravers(Node *root) {
-    if (root) {
-        postorderTravers(root->left);
-        postorderTravers(root->right);
-        printf("%i ", root->data);
-    }
-}
-
-void inorderTravers(Node *root) {
-    if (root) {
-        inorderTravers(root->left);
-        printf("%i ", root->data);
-        inorderTravers(root->right);
-    }
-}
-
-T search(Node *root, T value)
-{
-    if (root == NULL)
-        return -1;
-    else if (root->data == value)
-        return value;
-    else if (root->data <= value)
-        return search(root->right, value);
-    else
-        return search(root->left, value);
-}
-
-int main ()
-{
-    int Hash;
-    Hash = hash("Test Text");
-    printf("%i \n", Hash);
-
-    int data[10] = {12, 3, 1, 10, 222, 4, 18, 11, 120, 3};
-    Node *root = NULL;
-    for (int i = 0; i <= 9; ++i) {
-        insertNode(&root, data[i]);
-    }
-    printTree(root);
+int main () {
+    int* matrix[VERTEX][VERTEX];
+    createMatrix(VERTEX, matrix, 0, 12);
+    writeMatrixInFile(PATH, VERTEX, matrix);
+    scanfMatrix(PATH, VERTEX, matrix);
+    printMatrix(VERTEX, matrix);
+    
+    
+    int mark[VERTEX];
+    for (int i = 0; i < VERTEX; i++) {
+        mark[i] = 0;
+       }
+    dfs(matrix, mark, 0);
     printf("\n");
-    preorderTravers(root);
-    printf("\n");
-    postorderTravers(root);
-    printf("\n");
-    inorderTravers(root);
-    printf("\n");
-    printf("%i", search(root, 10));
+    
+    
+    for (int i = 0; i < VERTEX; i++) {
+        mark[i] = 0;
+       }
+    bfs(matrix, mark, 0);
 
     return 0;
 }
