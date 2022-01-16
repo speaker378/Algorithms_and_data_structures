@@ -79,15 +79,50 @@ void countingSort(int size, int array[size]) {
     free(frequencyArray);
 }
 
+void quickSort (int* array, int left, int right) {
+    int i = left;
+    int j = right;
+    int pivot = array[rand()%right];
+    
+    while (i <= j) {
+        while (array[i] < pivot) i++;
+        while (array[j] > pivot) j--;
+        
+        if (i <= j) {
+            if (array[i] > array[j]) {
+                swap(&array[i], &array[j]);
+            }
+            i++;
+            j--;
+        }
+    }
+    
+    if (left < j) quickSort (array, left, j);
+    if (i < right) quickSort (array, i, right);
+}
+
 
 int main () {
-    int size = 100;
+    int size = 10;
     int data [size];
-    
     createRandomArray(size, data);
-    print(size, data);
+//    print(size, data);
+    
     countingSort(size, data);
-    print(size, data);
+//    print(size, data);
+//    puts("");
+    
+    
+    int size2 = 10000;
+    int data2 [size2];
+    createRandomArray(size2, data2);
+//    print(size2, data2);
+    
+    time_start();
+    quickSort(data2, 0, size2 - 1);
+    long time = time_stop();
+    printf("Quick sort for %i items - %li ms\n", size2, time);
+//    print(size2, data2);
     
     return 0;
 }
