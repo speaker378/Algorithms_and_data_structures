@@ -155,39 +155,69 @@ void mergeSort(int* arr, int l, int r) {
 
 int main () {
     long time;
-    int size = 1000000;
-    int data [size];
+    int size1 = 100, size2 = 10000, size3 = 1000000;
+    int data1 [size1], data2[size2], data3[size3];
     
-    createRandomArray(size, data);
-//    print(size, data);
-    
-    time_start();
-    countingSort(size, data);
-    time = time_stop();
-    printf("Counting sort for %i items - %li ms\n", size, time);
-//    print(size, data);
-//    puts("");
-    
-    
-    createRandomArray(size, data);
-//    print(size, data);
+    createRandomArray(size1, data1);
+    createRandomArray(size2, data2);
+    createRandomArray(size3, data3);
+    print(size1, data1);
     
     time_start();
-    quickSort(data, 0, size - 1);
+    countingSort(size1, data1);
     time = time_stop();
-    printf("Quick sort for %i items - %li ms\n", size, time);
-//    print(size, data);
-//    puts("");
+    print(size1, data1);
+    printf("Counting sort for %i items - %li ms\n", size1, time);
+    time_start();
+    countingSort(size2, data2);
+    time = time_stop();
+    printf("Counting sort for %i items - %li ms\n", size2, time);
+    time_start();
+    countingSort(size3, data3);
+    time = time_stop();
+    printf("Counting sort for %i items - %li ms\n", size3, time);
     
-    createRandomArray(size, data);
-//    print(size, data);
+    
+    createRandomArray(size1, data1);
+    createRandomArray(size2, data2);
+    createRandomArray(size3, data3);
+    print(size1, data1);
     
     time_start();
-    mergeSort(data, 0, size - 1);
+    quickSort(data1, 0, size1 - 1);
     time = time_stop();
-    printf("Merge sort for %i items - %li ms\n", size, time);
-//    print(size, data);
-//    puts("");
+    print(size1, data1);
+    printf("Quick sort for %i items - %li ms\n", size1, time);
+    time_start();
+    quickSort(data2, 0, size2 - 1);
+    time = time_stop();
+    printf("Quick sort for %i items - %li ms\n", size2, time);
+    time_start();
+    quickSort(data3, 0, size3 - 1);
+    time = time_stop();
+    printf("Quick sort for %i items - %li ms\n", size3, time);
+
+    
+    createRandomArray(size1, data1);
+    createRandomArray(size2, data2);
+    createRandomArray(size3, data3);
+    print(size1, data1);
+    
+    time_start();
+    mergeSort(data1, 0, size1 - 1);
+    time = time_stop();
+    print(size1, data1);
+    printf("Merge sort for %i items - %li ms\n", size1, time);
+    time_start();
+    mergeSort(data2, 0, size2 - 1);
+    time = time_stop();
+    printf("Merge sort for %i items - %li ms\n", size2, time);
+    time_start();
+    mergeSort(data3, 0, size3 - 1);
+    time = time_stop();
+    printf("Merge sort for %i items - %li ms\n", size3, time);
+
+
     
     return 0;
 }
