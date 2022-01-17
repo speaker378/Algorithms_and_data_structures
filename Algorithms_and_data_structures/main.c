@@ -82,7 +82,7 @@ void countingSort(int size, int array[size]) {
 void quickSort (int* array, int left, int right) {
     int i = left;
     int j = right;
-    int pivot = array[rand()%right];
+    int pivot = array[(left + right)/2];
     
     while (i <= j) {
         while (array[i] < pivot) i++;
@@ -102,27 +102,92 @@ void quickSort (int* array, int left, int right) {
 }
 
 
+void merge(int* arr, int l, int m, int r) {
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+
+    int L[n1], R[n2];
+
+    for (i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    
+    for (j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+
+    i = 0;
+    j = 0;
+    k = l;
+    
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(int* arr, int l, int r) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m + 1, r);
+        merge(arr, l, m, r);
+    }
+}
+
 int main () {
-    int size = 10;
+    long time;
+    int size = 1000000;
     int data [size];
+    
     createRandomArray(size, data);
 //    print(size, data);
     
+    time_start();
     countingSort(size, data);
+    time = time_stop();
+    printf("Counting sort for %i items - %li ms\n", size, time);
 //    print(size, data);
 //    puts("");
     
     
-    int size2 = 10000;
-    int data2 [size2];
-    createRandomArray(size2, data2);
-//    print(size2, data2);
+    createRandomArray(size, data);
+//    print(size, data);
     
     time_start();
-    quickSort(data2, 0, size2 - 1);
-    long time = time_stop();
-    printf("Quick sort for %i items - %li ms\n", size2, time);
-//    print(size2, data2);
+    quickSort(data, 0, size - 1);
+    time = time_stop();
+    printf("Quick sort for %i items - %li ms\n", size, time);
+//    print(size, data);
+//    puts("");
+    
+    createRandomArray(size, data);
+//    print(size, data);
+    
+    time_start();
+    mergeSort(data, 0, size - 1);
+    time = time_stop();
+    printf("Merge sort for %i items - %li ms\n", size, time);
+//    print(size, data);
+//    puts("");
     
     return 0;
 }
