@@ -4,128 +4,220 @@
 //
 //  Created by Сергей Черных on 15.12.2021.
 //
+//  1. Реализовать сортировку подсчетом.
 //
-//  1. Написать функции, которые считывают матрицу смежности из файла и выводят ее на экран.
+//  2. Реализовать быструю сортировку.
 //
-//  2. Написать рекурсивную функцию обхода графа в глубину.
+//  3. *Реализовать сортировку слиянием.
 //
-//  3. Написать функцию обхода графа в ширину.
-//
-//  4. *Создать библиотеку функций для работы с графами.
+//  4. **Реализовать алгоритм сортировки со списком.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Queue.h"
-#define VERTEX 10
-#define PATH "/Users/sergejcernyh/Desktop/matrix.txt"
+#include <sys/time.h>
 
-void createMatrix(int size, int* matrix[size][size], int min, int max) {
-    int i, j;
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
-            if (i == j) {
-                matrix[i][j] = 0;
-            } else {
-                int value = min + rand()%(max - min + 1);
-                value = (value%2==0 || value%3==0 || value%5==0) ? 0 : value;
-                matrix[i][j] = value;
-                matrix[j][i] = value;
-            }
-        }
+struct timeval tv1 , tv2 , dtv;
+struct timezone tz;
+
+void time_start(void) {
+    gettimeofday (&tv1, &tz);
+}
+
+long time_stop(void) {
+    gettimeofday (&tv2, &tz);
+    dtv.tv_sec = tv2.tv_sec - tv1.tv_sec;
+    dtv.tv_usec = tv2.tv_usec - tv1.tv_usec;
+    if (dtv.tv_usec < 0) {
+        dtv.tv_sec--;
+        dtv.tv_usec += 1000000;
+    }
+    return dtv.tv_sec * 1000 + dtv.tv_usec / 1000;
+}
+
+void swap (int *a, int *b) {
+    *a = *a ^ *b;
+    *b = *a ^ *b;
+    *a = *b ^ *a;
+}
+
+void print (int size, int* array) {
+    int i;
+    for (i = 0; i < size; i ++) {
+        printf("%i ", array[i]);
+    }
+    printf("\n");
+}
+
+void createRandomArray (int size, int* array) {
+    srand( (unsigned int) time(NULL) );
+    for (int i = 0; i < size; i++) {
+        array[i] = rand()%size;
     }
 }
 
-void writeMatrixInFile(char* path, int size, int* matrix[size][size]) {
-    FILE* file = fopen(path, "w");
+void countingSort(int size, int array[size]) {
     int i, j;
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
-                fprintf(file, "%i ", matrix[i][j]);
-        }
-        fprintf(file, "\n");
-    }
-    fclose(file);
-}
-
-
-void scanfMatrix(char* path, int size, int* matrix[size][size]) {
-    FILE* file = fopen(path, "r");
-    int i, j;
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
-            fscanf(file, "%d", &matrix[i][j]);
-        }
-    }
-    fclose(file);
-}
-
-
-void printMatrix(int size, int* matrix[size][size]) {
-    int i, j;
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
-            printf("%i ", matrix[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void dfs(int* matrix[VERTEX][VERTEX], int mark[VERTEX], int v) {
-     int i;
-     mark[v] = 1;
-     printf("%d ", v + 1);
+    int *frequencyArray = (int*)malloc(size * sizeof(int));
     
-     for (i = 0; i < VERTEX; i++) {
-         if (matrix[v][i] != 0 && mark[i] == 0) {
-             printf("-> ");
-             dfs(matrix, mark, i);
-         }
-     }
- }
-
-void bfs(int* matrix[VERTEX][VERTEX], int mark[VERTEX], int vertex) {
-
-    Queue* queue = createQueue();
-    enQueue(queue, vertex);
-    mark[vertex] = 1;
+    for (i = 0; i < size; i++) {
+        frequencyArray[i] = 0;
+    }
     
-    while (!queueIsEmpty(queue)) {
-        int currentV = deQueue(queue);
-        printf("%i -> [", currentV);
+    int value = 0;
+    for (i = 0; i < size; i++) {
+        value = array[i];
+        frequencyArray[value]++;
+    }
+    
+    int index = 0;
+    for (j = 0; j < size; j++) {
+        for (i = 0; i < frequencyArray[j]; i++) {
+            array[index] = j;
+            index++;
+        }
+    }
+    free(frequencyArray);
+}
+
+void quickSort (int* array, int left, int right) {
+    int i = left;
+    int j = right;
+    int pivot = array[(left + right)/2];
+    
+    while (i <= j) {
+        while (array[i] < pivot) i++;
+        while (array[j] > pivot) j--;
         
-        if (mark[currentV] == 1) {
-            for (int i = 0; i < VERTEX; i++) {
-                if (matrix[currentV][i] != 0 && mark[i] == 0) {
-                    enQueue(queue, i);
-                    mark[i] = 1;
-                    printf(" %i ", i);
-                }
+        if (i <= j) {
+            if (array[i] > array[j]) {
+                swap(&array[i], &array[j]);
             }
-            printf("]\n");
+            i++;
+            j--;
         }
+    }
+    
+    if (left < j) quickSort (array, left, j);
+    if (i < right) quickSort (array, i, right);
+}
+
+
+void merge(int* arr, int l, int m, int r) {
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+
+    int L[n1], R[n2];
+
+    for (i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    
+    for (j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+
+    i = 0;
+    j = 0;
+    k = l;
+    
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(int* arr, int l, int r) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m + 1, r);
+        merge(arr, l, m, r);
     }
 }
 
 int main () {
-    int* matrix[VERTEX][VERTEX];
-    createMatrix(VERTEX, matrix, 0, 12);
-    writeMatrixInFile(PATH, VERTEX, matrix);
-    scanfMatrix(PATH, VERTEX, matrix);
-    printMatrix(VERTEX, matrix);
+    long time;
+    int size1 = 100, size2 = 10000, size3 = 1000000;
+    int data1 [size1], data2[size2], data3[size3];
+    
+    createRandomArray(size1, data1);
+    createRandomArray(size2, data2);
+    createRandomArray(size3, data3);
+    print(size1, data1);
+    
+    time_start();
+    countingSort(size1, data1);
+    time = time_stop();
+    print(size1, data1);
+    printf("Counting sort for %i items - %li ms\n", size1, time);
+    time_start();
+    countingSort(size2, data2);
+    time = time_stop();
+    printf("Counting sort for %i items - %li ms\n", size2, time);
+    time_start();
+    countingSort(size3, data3);
+    time = time_stop();
+    printf("Counting sort for %i items - %li ms\n", size3, time);
     
     
-    int mark[VERTEX];
-    for (int i = 0; i < VERTEX; i++) {
-        mark[i] = 0;
-       }
-    dfs(matrix, mark, 0);
-    printf("\n");
+    createRandomArray(size1, data1);
+    createRandomArray(size2, data2);
+    createRandomArray(size3, data3);
+    print(size1, data1);
     
-    
-    for (int i = 0; i < VERTEX; i++) {
-        mark[i] = 0;
-       }
-    bfs(matrix, mark, 0);
+    time_start();
+    quickSort(data1, 0, size1 - 1);
+    time = time_stop();
+    print(size1, data1);
+    printf("Quick sort for %i items - %li ms\n", size1, time);
+    time_start();
+    quickSort(data2, 0, size2 - 1);
+    time = time_stop();
+    printf("Quick sort for %i items - %li ms\n", size2, time);
+    time_start();
+    quickSort(data3, 0, size3 - 1);
+    time = time_stop();
+    printf("Quick sort for %i items - %li ms\n", size3, time);
 
+    
+    createRandomArray(size1, data1);
+    createRandomArray(size2, data2);
+    createRandomArray(size3, data3);
+    print(size1, data1);
+    
+    time_start();
+    mergeSort(data1, 0, size1 - 1);
+    time = time_stop();
+    print(size1, data1);
+    printf("Merge sort for %i items - %li ms\n", size1, time);
+    time_start();
+    mergeSort(data2, 0, size2 - 1);
+    time = time_stop();
+    printf("Merge sort for %i items - %li ms\n", size2, time);
+    time_start();
+    mergeSort(data3, 0, size3 - 1);
+    time = time_stop();
+    printf("Merge sort for %i items - %li ms\n", size3, time);
+
+
+    
     return 0;
 }
